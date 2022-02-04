@@ -1,0 +1,24 @@
+{
+  "name": "reaway/think-middleware",
+  "type": "library",
+  "description": "think middleware",
+  "keywords": [],
+  "homepage": "https://github.com/reaway/think-middleware",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "reaway",
+      "email": "reaway@foxmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2.0",
+    "reaway/think-container": "^1.0",
+    "reaway/think-facade": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Think\\Component\\Middleware\\": "src/"
+    }
+  }
+}
