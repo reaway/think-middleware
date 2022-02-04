@@ -16,6 +16,7 @@ use Closure;
 use InvalidArgumentException;
 use LogicException;
 use Throwable;
+use Think\Component\Container\Container;
 use Think\Component\Middleware\Exception\Handle;
 
 /**
@@ -29,6 +30,12 @@ class Middleware
      * @var array
      */
     protected $queue = [];
+
+    /**
+     * 应用对象
+     * @var Container
+     */
+    protected $container;
 
     /**
      * 配置参数
@@ -52,15 +59,9 @@ class Middleware
         $this->config = array_merge($this->config, $config);
     }
 
-    /**
-     * 应用对象
-     * @var App
-     */
-    protected $app;
-
-    public function __construct(App $app)
+    public function __construct()
     {
-        $this->app = $app;
+        $this->container = Container::getInstance();
     }
 
     /**
@@ -159,7 +160,7 @@ class Middleware
                 return function ($request, $next) use ($middleware) {
                     [$call, $params] = $middleware;
                     if (is_array($call) && is_string($call[0])) {
-                        $call = [$this->app->make($call[0]), $call[1]];
+                        $call = [$this->container->make($call[0]), $call[1]];
                     }
                     $response = call_user_func($call, $request, $next, ...$params);
                     if (!$response instanceof Response) {
@@ -181,7 +182,7 @@ class Middleware
             foreach ($queue as $middleware) {
                 [$call] = $middleware;
                 if (is_array($call) && is_string($call[0])) {
-                    $instance = $this->app->make($call[0]);
+                    $instance = $this->container->make($call[0]);
                     if (method_exists($instance, 'end')) {
                         $instance->end($response);
                     }
@@ -199,7 +200,7 @@ class Middleware
     public function handleException($passable, Throwable $e)
     {
         /** @var Handle $handler */
-        $handler = $this->app->make(Handle::class);
+        $handler = $this->container->make(Handle::class);
 
         $handler->report($e);
 
