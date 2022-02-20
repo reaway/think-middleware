@@ -14,7 +14,10 @@
   "require": {
     "php": ">=7.2.0",
     "reaway/think-container": "^1.0",
-    "reaway/think-facade": "^1.0"
+    "reaway/think-facade": "^1.0",
+    "reaway/think-config": "^1.0",
+    "reaway/think-request": "^1.0",
+    "reaway/think-response": "^1.0"
   },
   "autoload": {
     "psr-4": {

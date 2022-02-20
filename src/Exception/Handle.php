@@ -17,8 +17,8 @@ use think\App;
 use think\console\Output;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
-use think\Request;
-use think\Response;
+use Think\Component\Request\Request;
+use Think\Component\Response\Response;
 use Throwable;
 
 /**

@@ -16,8 +16,11 @@ use Closure;
 use InvalidArgumentException;
 use LogicException;
 use Throwable;
-use Think\Component\Container\Container;
 use Think\Component\Middleware\Exception\Handle;
+use Think\Component\Container\Container;
+use Think\Component\Config\Config;
+use Think\Component\Request\Request;
+use Think\Component\Response\Response;
 
 /**
  * 中间件管理类
@@ -48,6 +51,17 @@ class Middleware
         'priority' => [],
     ];
 
+    public function __construct(array $config = [])
+    {
+        $this->container = Container::getInstance();
+        $this->setConfig($config);
+    }
+
+    public static function __make(Config $config)
+    {
+        return new static($config->get('middleware'));
+    }
+
     /**
      * 设置配置
      * @access public
@@ -59,9 +73,20 @@ class Middleware
         $this->config = array_merge($this->config, $config);
     }
 
-    public function __construct()
+    /**
+     * 获取配置
+     * @access public
+     * @param null|string $name    名称
+     * @param mixed       $default 默认值
+     * @return mixed
+     */
+    public function getConfig(string $name = null, $default = null)
     {
-        $this->container = Container::getInstance();
+        if (is_null($name)) {
+            return $this->config;
+        }
+
+        return $this->config[$name] ?? $default;
     }
 
     /**
@@ -229,7 +254,7 @@ class Middleware
         }
 
         //中间件别名检查
-        $alias = $this->config['alias'] ?? [];
+        $alias = $this->getConfig('alias', []);
 
         if (isset($alias[$middleware])) {
             $middleware = $alias[$middleware];
@@ -250,7 +275,7 @@ class Middleware
      */
     protected function sortMiddleware(array $middlewares)
     {
-        $priority = $this->config['priority'] ?? [];
+        $priority = $this->getConfig('priority', []);
         uasort($middlewares, function ($a, $b) use ($priority) {
             $aPriority = $this->getMiddlewarePriority($priority, $a);
             $bPriority = $this->getMiddlewarePriority($priority, $b);
