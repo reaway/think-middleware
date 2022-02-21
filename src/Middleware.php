@@ -16,7 +16,7 @@ use Closure;
 use InvalidArgumentException;
 use LogicException;
 use Throwable;
-use Think\Component\Middleware\Exception\Handle;
+use Think\Component\Middleware\Contract\HandleExceptionInterface;
 use Think\Component\Container\Container;
 use Think\Component\Config\Config;
 use Think\Component\Request\Request;
@@ -51,15 +51,21 @@ class Middleware
         'priority' => [],
     ];
 
-    public function __construct(array $config = [])
+    /**
+     * @var HandleExceptionInterface
+     */
+    private $handleException;
+
+    public function __construct(HandleExceptionInterface $handleException = null, array $config = [])
     {
-        $this->container = Container::getInstance();
         $this->setConfig($config);
+        $this->container = Container::getInstance();
+        $this->handleException = $handleException;
     }
 
-    public static function __make(Config $config)
+    public static function __make(HandleExceptionInterface $handleException, Config $config)
     {
-        return new static($config->get('middleware'));
+        return new static($handleException, $config->get('middleware'));
     }
 
     /**
@@ -218,18 +224,18 @@ class Middleware
 
     /**
      * 异常处理
-     * @param Request   $passable
+     * @param Request $passable
      * @param Throwable $e
      * @return Response
+     * @throws Throwable
      */
-    public function handleException($passable, Throwable $e)
+    public function handleException(Request $passable, Throwable $e)
     {
-        /** @var Handle $handler */
-        $handler = $this->container->make(Handle::class);
-
-        $handler->report($e);
-
-        return $handler->render($passable, $e);
+        if (is_null($this->handleException)) {
+            throw $e;
+        }
+        $this->handleException->report($e);
+        return $this->handleException->render($passable, $e);
     }
 
     /**
