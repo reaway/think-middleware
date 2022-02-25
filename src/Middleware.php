@@ -51,21 +51,15 @@ class Middleware
         'priority' => [],
     ];
 
-    /**
-     * @var HandleExceptionInterface
-     */
-    private $handleException;
-
-    public function __construct(HandleExceptionInterface $handleException = null, array $config = [])
+    public function __construct(array $config = [])
     {
         $this->setConfig($config);
         $this->container = Container::getInstance();
-        $this->handleException = $handleException;
     }
 
-    public static function __make(HandleExceptionInterface $handleException, Config $config)
+    public static function __make(Config $config)
     {
-        return new static($handleException, $config->get('middleware'));
+        return new static($config->get('middleware'));
     }
 
     /**
@@ -199,8 +193,7 @@ class Middleware
                     }
                     return $response;
                 };
-            }, $this->sortMiddleware($this->queue[$type] ?? [])))
-            ->whenException([$this, 'handleException']);
+            }, $this->sortMiddleware($this->queue[$type] ?? [])));
     }
 
     /**
@@ -220,22 +213,6 @@ class Middleware
                 }
             }
         }
-    }
-
-    /**
-     * 异常处理
-     * @param Request $passable
-     * @param Throwable $e
-     * @return Response
-     * @throws Throwable
-     */
-    public function handleException(Request $passable, Throwable $e)
-    {
-        if (is_null($this->handleException)) {
-            throw $e;
-        }
-        $this->handleException->report($e);
-        return $this->handleException->render($passable, $e);
     }
 
     /**

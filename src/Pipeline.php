@@ -20,8 +20,6 @@ class Pipeline
 
     protected $pipes = [];
 
-    protected $exceptionHandler;
-
     /**
      * 初始数据
      * @param $passable
@@ -55,52 +53,19 @@ class Pipeline
             array_reverse($this->pipes),
             $this->carry(),
             function ($passable) use ($destination) {
-                try {
-                    return $destination($passable);
-                } catch (Throwable | Exception $e) {
-                    return $this->handleException($passable, $e);
-                }
+                return $destination($passable);
             }
         );
 
         return $pipeline($this->passable);
     }
 
-    /**
-     * 设置异常处理器
-     * @param callable $handler
-     * @return $this
-     */
-    public function whenException($handler)
-    {
-        $this->exceptionHandler = $handler;
-        return $this;
-    }
-
     protected function carry()
     {
         return function ($stack, $pipe) {
             return function ($passable) use ($stack, $pipe) {
-                try {
-                    return $pipe($passable, $stack);
-                } catch (Throwable | Exception $e) {
-                    return $this->handleException($passable, $e);
-                }
+                return $pipe($passable, $stack);
             };
         };
-    }
-
-    /**
-     * 异常处理
-     * @param $passable
-     * @param $e
-     * @return mixed
-     */
-    protected function handleException($passable, Throwable $e)
-    {
-        if ($this->exceptionHandler) {
-            return call_user_func($this->exceptionHandler, $passable, $e);
-        }
-        throw $e;
     }
 }
